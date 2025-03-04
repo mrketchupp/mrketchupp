@@ -17,8 +17,6 @@
 *Code is not just syntax, it's a narrative of problem-solving*
 
 #### Ongoing Experiments
-<!-- ongoing-experiments-start -->
-<!-- ongoing-experiments-end -->
 
 **Current Mood**: 
 ```
