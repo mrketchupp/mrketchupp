@@ -1,0 +1,82 @@
+name: Actualizar Ongoing Experiments
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Cada 24 hrs
+  workflow_dispatch: # Permite ejecución manual
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyGithub
+
+      - name: Actualizar README con Experimentos en Curso
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python << EOF
+import os
+import re
+from github import Github
+
+# Inicializar cliente de GitHub
+g = Github(os.getenv('GH_TOKEN'))
+user = g.get_user()
+
+# Obtener los 2 repositorios más recientes
+recent_repos = list(user.get_repos(sort='updated', direction='desc'))[:2]
+
+# Leer el README actual
+with open('README.md', 'r') as f:
+    readme_content = f.read()
+
+# Preparar la lista de experimentos
+experiments_list = "#### Ongoing Experiments\n"
+for repo in recent_repos:
+    experiments_list += f"- 🔬 [{repo.name}]({repo.html_url}): {repo.description or 'Sin descripción'}\n"
+
+# Reemplazar la sección de Experimentos
+readme_content = re.sub(
+    r'(#### Ongoing Experiments).*?(\n- 🛠️)', 
+    f'\\1\n{experiments_list}\\2', 
+    readme_content, 
+    flags=re.DOTALL
+)
+
+# Actualizar la fecha de recalibración
+from datetime import datetime
+current_date = datetime.now().strftime('%Y-%m-%d')
+readme_content = re.sub(
+    r'\*README\.md last recalibrated:.*\*', 
+    f'*README.md last recalibrated: {current_date}*', 
+    readme_content
+)
+
+# Escribir el README actualizado
+with open('README.md', 'w') as f:
+    f.write(readme_content)
+EOF
+
+      - name: Configurar Git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Commit y Push de cambios
+        run: |
+          git add README.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "Actualizar Experimentos en Curso [skip ci]"
+          git push
