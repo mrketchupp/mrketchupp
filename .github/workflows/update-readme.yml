@@ -27,48 +27,48 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python << EOF
-import os
-import re
-from github import Github
+          python - <<EOF
+          import os
+          import re
+          from datetime import datetime
+          from github import Github
 
-# Inicializar cliente de GitHub
-g = Github(os.getenv('GH_TOKEN'))
-user = g.get_user()
+          # Inicializar cliente de GitHub
+          g = Github(os.getenv('GH_TOKEN'))
+          user = g.get_user()
 
-# Obtener los 2 repositorios más recientes
-recent_repos = list(user.get_repos(sort='updated', direction='desc'))[:2]
+          # Obtener los 2 repositorios más recientes
+          recent_repos = list(user.get_repos(sort='updated', direction='desc'))[:2]
 
-# Leer el README actual
-with open('README.md', 'r') as f:
-    readme_content = f.read()
+          # Leer el README actual
+          with open('README.md', 'r') as f:
+            readme_content = f.read()
 
-# Preparar la lista de experimentos
-experiments_list = "#### Ongoing Experiments\n"
-for repo in recent_repos:
-    experiments_list += f"- 🔬 [{repo.name}]({repo.html_url}): {repo.description or 'Sin descripción'}\n"
+          # Preparar la lista de experimentos
+          experiments_list = "#### Ongoing Experiments\n"
+          for repo in recent_repos:
+            experiments_list += f"-  [{repo.name}]({repo.html_url}): {repo.description or 'Sin descripción'}\n"
 
-# Reemplazar la sección de Experimentos
-readme_content = re.sub(
-    r'(#### Ongoing Experiments).*?(\n- 🛠️)', 
-    f'\\1\n{experiments_list}\\2', 
-    readme_content, 
-    flags=re.DOTALL
-)
+          # Reemplazar la sección de Experimentos
+          readme_content = re.sub(
+            r'(#### Ongoing Experiments).*?(\n- ️)',
+            f'\\1\n{experiments_list}\\2',
+            readme_content,
+            flags=re.DOTALL
+          )
 
-# Actualizar la fecha de recalibración
-from datetime import datetime
-current_date = datetime.now().strftime('%Y-%m-%d')
-readme_content = re.sub(
-    r'\*README\.md last recalibrated:.*\*', 
-    f'*README.md last recalibrated: {current_date}*', 
-    readme_content
-)
+          # Actualizar la fecha de recalibración
+          current_date = datetime.now().strftime('%Y-%m-%d')
+          readme_content = re.sub(
+            r'\*README\.md last recalibrated:.*\*',
+            f'*README.md last recalibrated: {current_date}*',
+            readme_content
+          )
 
-# Escribir el README actualizado
-with open('README.md', 'w') as f:
-    f.write(readme_content)
-EOF
+          # Escribir el README actualizado
+          with open('README.md', 'w') as f:
+            f.write(readme_content)
+          EOF
 
       - name: Configurar Git
         run: |
