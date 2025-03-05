@@ -24,9 +24,9 @@ def update_readme(username):
     # Prepara la lista de repositorios con emojis
     repo_list = []
     if repos:
-        repo_list.append(f"🔬 [{repos[0]['name']}](https://github.com/{username}/{repos[0]['name']})")
+        repo_list.append(f"- 🔬 [{repos[0]['name']}](https://github.com/{username}/{repos[0]['name']})")
     if len(repos) > 1:
-        repo_list.append(f"🛠️ [{repos[1]['name']}](https://github.com/{username}/{repos[1]['name']})")
+        repo_list.append(f"- 🛠️ [{repos[1]['name']}](https://github.com/{username}/{repos[1]['name']})")
 
     # Lee el contenido actual del README
     with open("README.md", "r") as file:
