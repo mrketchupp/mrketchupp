@@ -51,8 +51,8 @@ jobs:
           # Obtener token de acceso de instalación
           installation_id = int(os.getenv('GITHUB_APP_INSTALLATION_ID'))
           g = Github(jwt=encoded_jwt)
-          installation = g.get_app_installation(installation_id)
-          access_token = installation.create_access_token().token
+          installation = g.get_user().get_installation()
+          access_token = g.get_access_token(installation_id).token
 
           # Inicializar cliente de GitHub con el token de acceso
           g = Github(access_token)
