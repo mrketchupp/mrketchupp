@@ -2,7 +2,7 @@ name: Update README
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Se ejecuta cada hora
+    - cron: '0 0 * * *'  # Se ejecuta cada 24 horas
   workflow_dispatch: # Permite la ejecución manual
 
 jobs:
