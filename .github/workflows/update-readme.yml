@@ -21,10 +21,11 @@ jobs:
       run: pip install requests
 
     - name: Update README
+      working-directory: ${{ github.workspace }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: python update_readme.py
-
+      
     - name: Commit and push changes
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
