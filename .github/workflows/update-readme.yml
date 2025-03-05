@@ -21,20 +21,41 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install PyGithub
+          pip install PyGithub pyjwt
 
       - name: Actualizar README con Experimentos en Curso
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_APP_ID: ${{ secrets.APP_ID_UPDATE_README }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.INSTALLATION_ID_UPDATE_README }}
+          GITHUB_APP_PRIVATE_KEY: ${{ secrets.UPDATE_README_ACTION }}
         run: |
           python - <<EOF
           import os
           import re
           from datetime import datetime
           from github import Github
+          import jwt
+          import time
 
-          # Inicializar cliente de GitHub
-          g = Github(os.getenv('GH_TOKEN'))
+          # Generar JWT
+          app_id = os.getenv('GITHUB_APP_ID')
+          private_key = os.getenv('GITHUB_APP_PRIVATE_KEY')
+          now = int(time.time())
+          payload = {
+              'iat': now,
+              'exp': now + (10 * 60), # 10 minutos de expiración
+              'iss': app_id
+          }
+          encoded_jwt = jwt.encode(payload, private_key, algorithm='RS256')
+
+          # Obtener token de acceso de instalación
+          installation_id = os.getenv('GITHUB_APP_INSTALLATION_ID')
+          g = Github(jwt=encoded_jwt)
+          installation = g.get_integration().get_installation(installation_id)
+          access_token = installation.create_access_token().token
+
+          # Inicializar cliente de GitHub con el token de acceso
+          g = Github(access_token)
           user = g.get_user()
 
           # Obtener los 2 repositorios más recientes
