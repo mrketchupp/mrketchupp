@@ -1,103 +1,68 @@
-name: Actualizar Ongoing Experiments
+import os
+import re
+from datetime import datetime
+from github import Github
+import jwt
+import time
 
-on:
-  schedule:
-    - cron: '0 0 * * *' # Cada 24 hrs
-  workflow_dispatch: # Permite ejecución manual
+# Generar JWT
+app_id = os.getenv('GITHUB_APP_ID')
+private_key = os.getenv('GITHUB_APP_PRIVATE_KEY')
+now = int(time.time())
+payload = {
+    'iat': now,
+    'exp': now + (10 * 60), # 10 minutos de expiración
+    'iss': app_id
+}
+encoded_jwt = jwt.encode(payload, private_key, algorithm='RS256')
 
-jobs:
-  update-readme:
-    runs-on: ubuntu-latest
+print(f"JWT: {encoded_jwt}") # Depurar JWT
 
-    steps:
-      - name: Checkout del repositorio
-        uses: actions/checkout@v4
+# Obtener token de acceso de instalación
+installation_id = int(os.getenv('GITHUB_APP_INSTALLATION_ID'))
 
-      - name: Configurar Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+print(f"installation_id: {installation_id}, type: {type(installation_id)}") # Depurar installation_id
 
-      - name: Instalar dependencias
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade PyGithub pyjwt
+g = Github(jwt=encoded_jwt)
 
-      - name: Actualizar README con Experimentos en Curso
-        env:
-          GITHUB_APP_ID: ${{ secrets.APP_ID_UPDATE_README }}
-          GITHUB_APP_INSTALLATION_ID: ${{ secrets.INSTALLATION_ID_UPDATE_README }}
-          GITHUB_APP_PRIVATE_KEY: ${{ secrets.UPDATE_README_ACTION }}
-        run: |
-          python - <<EOF
-          import os
-          import re
-          from datetime import datetime
-          from github import Github
-          import jwt
-          import time
+print(f"Github instance: {g}") # Depurar instancia de Github
+print(dir(g)) # Depurar atributos y métodos de Github
 
-          # Generar JWT
-          app_id = os.getenv('GITHUB_APP_ID')
-          private_key = os.getenv('GITHUB_APP_PRIVATE_KEY')
-          now = int(time.time())
-          payload = {
-              'iat': now,
-              'exp': now + (10 * 60), # 10 minutos de expiración
-              'iss': app_id
-          }
-          encoded_jwt = jwt.encode(payload, private_key, algorithm='RS256')
+installation = g.get_app_installation(installation_id)
+access_token = installation.create_access_token().token
 
-          # Obtener token de acceso de instalación
-          installation_id = int(os.getenv('GITHUB_APP_INSTALLATION_ID'))
-          g = Github(jwt=encoded_jwt)
-          installation = g.get_installation(installation_id) # Línea corregida: get_installation en lugar de get_app_installation
-          access_token = installation.create_access_token().token
+# Inicializar cliente de GitHub con el token de acceso
+g = Github(access_token)
+user = g.get_user()
 
-          # Inicializar cliente de GitHub con el token de acceso
-          g = Github(access_token)
-          user = g.get_user()
+# Obtener los 2 repositorios más recientes
+recent_repos = list(user.get_repos(sort='updated', direction='desc'))[:2]
 
-          # Obtener los 2 repositorios más recientes
-          recent_repos = list(user.get_repos(sort='updated', direction='desc'))[:2]
+# Leer el README actual
+with open('README.md', 'r') as f:
+    readme_content = f.read()
 
-          # Leer el README actual
-          with open('README.md', 'r') as f:
-              readme_content = f.read()
+# Preparar la lista de experimentos
+experiments_list = "#### Ongoing Experiments\n"
+for repo in recent_repos:
+    experiments_list += f"-  [{repo.name}]({repo.html_url}): {repo.description or 'Sin descripción'}\n"
 
-          # Preparar la lista de experimentos
-          experiments_list = "#### Ongoing Experiments\n"
-          for repo in recent_repos:
-              experiments_list += f"-  [{repo.name}]({repo.html_url}): {repo.description or 'Sin descripción'}\n"
+# Reemplazar la sección de Experimentos
+readme_content = re.sub(
+    r'(#### Ongoing Experiments).*?(\n- ️)',
+    f'\\1\n{experiments_list}\\2',
+    readme_content,
+    flags=re.DOTALL
+)
 
-          # Reemplazar la sección de Experimentos
-          readme_content = re.sub(
-              r'(#### Ongoing Experiments).*?(\n- ️)',
-              f'\\1\n{experiments_list}\\2',
-              readme_content,
-              flags=re.DOTALL
-          )
+# Actualizar la fecha de recalibración
+current_date = datetime.now().strftime('%Y-%m-%d')
+readme_content = re.sub(
+    r'\*README\.md last recalibrated:.*\*',
+    f'*README.md last recalibrated: {current_date}*',
+    readme_content
+)
 
-          # Actualizar la fecha de recalibración
-          current_date = datetime.now().strftime('%Y-%m-%d')
-          readme_content = re.sub(
-              r'\*README\.md last recalibrated:.*\*',
-              f'*README.md last recalibrated: {current_date}*',
-              readme_content
-          )
-
-          # Escribir el README actualizado
-          with open('README.md', 'w') as f:
-              f.write(readme_content)
-          EOF
-
-      - name: Configurar Git
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-
-      - name: Commit y Push de cambios
-        run: |
-          git add README.md
-          git diff --quiet && git diff --staged --quiet || git commit -m "Actualizar Experimentos en Curso [skip ci]"
-          git push
+# Escribir el README actualizado
+with open('README.md', 'w') as f:
+    f.write(readme_content)
