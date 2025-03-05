@@ -49,7 +49,7 @@ jobs:
           encoded_jwt = jwt.encode(payload, private_key, algorithm='RS256')
 
           print(f"JWT: {encoded_jwt}")  # Depurar JWT
-
+          
           # Obtener token de acceso de instalación
           installation_id = int(os.getenv('GITHUB_APP_INSTALLATION_ID'))
 
@@ -60,9 +60,9 @@ jobs:
           print(f"Github instance: {g}")  # Depurar instancia de Github
           print(dir(g))  # Depurar atributos y métodos de Github
 
-          installation = g.get_app_installation(installation_id)
-          access_token = installation.create_access_token().token
-
+          installation = g.get_user().get_installation()
+          access_token = g.get_access_token(installation_id).token
+          
           # Inicializar cliente de GitHub con el token de acceso
           g = Github(access_token)
           user = g.get_user()
