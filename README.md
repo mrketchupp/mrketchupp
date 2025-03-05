@@ -17,12 +17,5 @@
 *Code is not just syntax, it's a narrative of problem-solving*
 
 #### Ongoing Experiments
-
-**Current Mood**: 
-```
-┌─────────────────┐
-│ Controlled Chaos│
-└─────────────────┘
-```
-
-*README.md last recalibrated: 02-04-25*
+🔬 [mrketchupp](https://github.com/mrketchupp/mrketchupp)
+🛠️ [learn_git](https://github.com/mrketchupp/learn_git)
