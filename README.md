@@ -17,5 +17,5 @@
 *Code is not just syntax, it's a narrative of problem-solving*
 
 #### Ongoing Experiments
-- 🔬 [learn_git](https://github.com/mrketchupp/learn_git)
-- 🛠️ [google-clone](https://github.com/mrketchupp/google-clone)
+- 🔬 [mrketchupp](https://github.com/mrketchupp/mrketchupp)
+- 🛠️ [learn_git](https://github.com/mrketchupp/learn_git)
