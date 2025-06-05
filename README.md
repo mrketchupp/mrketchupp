@@ -17,5 +17,5 @@
 *Code is not just syntax, it's a narrative of problem-solving*
 
 #### Ongoing Experiments
-- 🔬 [Timeline-photo-journal](https://github.com/mrketchupp/Timeline-photo-journal)
-- 🛠️ [mrketchupp](https://github.com/mrketchupp/mrketchupp)
+- 🔬 [mrketchupp](https://github.com/mrketchupp/mrketchupp)
+- 🛠️ [Timeline-photo-journal](https://github.com/mrketchupp/Timeline-photo-journal)
